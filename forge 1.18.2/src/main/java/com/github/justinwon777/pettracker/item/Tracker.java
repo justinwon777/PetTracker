@@ -24,10 +24,10 @@ public class Tracker extends Item {
     @Override
     public InteractionResult interactLivingEntity(ItemStack pStack, Player pPlayer, LivingEntity pInteractionTarget,
                                                   InteractionHand pUsedHand) {
-        if (pInteractionTarget.level.isClientSide) return InteractionResult.PASS;
+        if (pInteractionTarget.level.isClientSide) return InteractionResult.SUCCESS;
         CompoundTag tag = pStack.getOrCreateTag();
         tag.putUUID(TRACKING, pInteractionTarget.getUUID());
-        System.out.println(tag);
+        pPlayer.setItemInHand(pUsedHand, pStack);
         pPlayer.sendMessage(new TextComponent("Entity added"), pPlayer.getUUID());
 
         return InteractionResult.SUCCESS;
@@ -37,10 +37,10 @@ public class Tracker extends Item {
         if (pLevel.isClientSide) return InteractionResultHolder.pass(pPlayer.getItemInHand(pUsedHand));
         ItemStack itemstack = pPlayer.getItemInHand(pUsedHand);
         CompoundTag tag = itemstack.getTag();
-        System.out.println(tag);
         if (tag != null && tag.contains(TRACKING)) {
             Entity entity = this.getEntity((ServerLevel) pLevel, itemstack);
-            pPlayer.sendMessage(new TextComponent(entity.getX() + ", " + entity.getY() + ", " + entity.getZ()), pPlayer.getUUID());
+            pPlayer.sendMessage(new TextComponent(entity.getDisplayName().getString() + ": " + (int) entity.getX() + ", " + (int) entity.getY() + ", " + (int) entity.getZ() + " (" + (int) entity.distanceTo(pPlayer) + " blocks away)"),
+                    pPlayer.getUUID());
         } else {
             pPlayer.sendMessage(new TextComponent("No entity added"), pPlayer.getUUID());
         }

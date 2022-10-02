@@ -22,27 +22,30 @@ public class Tracker extends Item {
     }
 
     @Override
-    public InteractionResult interactLivingEntity(ItemStack stack, Player playerIn, LivingEntity entity,
-                                                  InteractionHand hand) {
-        if (entity.level.isClientSide) return InteractionResult.PASS;
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putUUID(TRACKING, entity.getUUID());
-        playerIn.sendSystemMessage(Component.literal("Entity added"));
+    public InteractionResult interactLivingEntity(ItemStack pStack, Player pPlayer, LivingEntity pInteractionTarget,
+                                                  InteractionHand pUsedHand) {
+        if (pInteractionTarget.level.isClientSide) return InteractionResult.SUCCESS;
+        CompoundTag tag = pStack.getOrCreateTag();
+        tag.putUUID(TRACKING, pInteractionTarget.getUUID());
+        pPlayer.setItemInHand(pUsedHand, pStack);
+        pPlayer.sendSystemMessage(Component.literal("Entity added"));
 
         return InteractionResult.SUCCESS;
     }
     @Override
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
-        if (worldIn.isClientSide) return InteractionResultHolder.pass(playerIn.getItemInHand(handIn));
-        ItemStack itemstack = playerIn.getItemInHand(handIn);
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand) {
+        if (pLevel.isClientSide) return InteractionResultHolder.pass(pPlayer.getItemInHand(pUsedHand));
+        ItemStack itemstack = pPlayer.getItemInHand(pUsedHand);
         CompoundTag tag = itemstack.getTag();
         if (tag != null && tag.contains(TRACKING)) {
-            Entity entity = this.getEntity((ServerLevel) worldIn, itemstack);
-            playerIn.sendSystemMessage(Component.literal(entity.getX() + ", " + entity.getY() + ", " + entity.getZ()));
+            Entity entity = this.getEntity((ServerLevel) pLevel, itemstack);
+            pPlayer.sendSystemMessage(Component.literal(entity.getDisplayName().getString() + ": " + (int) entity.getX() + ", " + (int) entity.getY() +
+                    "," +
+                    " " + (int) entity.getZ() + " (" + (int) entity.distanceTo(pPlayer) + " blocks away)"));
         } else {
-            playerIn.sendSystemMessage(Component.literal("No entity added"));
+            pPlayer.sendSystemMessage(Component.literal("No entity added"));
         }
-        return InteractionResultHolder.pass(playerIn.getItemInHand(handIn));
+        return InteractionResultHolder.pass(pPlayer.getItemInHand(pUsedHand));
     }
 
     private Entity getEntity(ServerLevel world, ItemStack stack) {
