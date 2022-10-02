@@ -1,20 +1,20 @@
 package com.github.justinwon777.pettracker;
 
+import com.github.justinwon777.pettracker.core.ItemInit;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(PetTracker.MOD_ID)
 public class PetTracker
 {
     public static final String MOD_ID = "pettracker";
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public PetTracker() {
         MinecraftForge.EVENT_BUS.register(this);
-//        IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
+        IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        ItemInit.register(eventBus);
     }
 
 }
