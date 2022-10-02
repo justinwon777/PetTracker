@@ -14,7 +14,7 @@ public class ItemInit {
             PetTracker.MOD_ID);
 
     public static final RegistryObject<Item> TRACKER = ITEMS.register("tracker",
-            () -> new Tracker(new Item.Properties().tab(ItemGroup.TAB_MISC)));
+            () -> new Tracker(new Item.Properties().group(ItemGroup.MISC).maxStackSize(1)));
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
