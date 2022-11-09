@@ -104,11 +104,11 @@ public class Tracker extends Item {
         if (tag != null && tag.contains(TRACKING)) {
             ListTag listTag = tag.getList(TRACKING, 10);
             if (!listTag.isEmpty()) {
-                for (int i = 0; i < listTag.size(); ++i) {
-                    CompoundTag entityTag = listTag.getCompound(i);
-                    Entity entity = getEntity((ServerLevel) pLevel, entityTag.getUUID("uuid"));
-                    System.out.println(entity);
-                }
+//                for (int i = 0; i < listTag.size(); ++i) {
+//                    CompoundTag entityTag = listTag.getCompound(i);
+//                    Entity entity = getEntity((ServerLevel) pLevel, entityTag.getUUID("uuid"));
+//                    System.out.println(entity);
+//                }
                 OpenTrackerPacket packet = new OpenTrackerPacket(itemstack, hand);
                 PacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) pPlayer),
                         packet);

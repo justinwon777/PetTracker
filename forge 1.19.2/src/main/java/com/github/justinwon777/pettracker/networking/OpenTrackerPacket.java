@@ -23,6 +23,7 @@ public class OpenTrackerPacket {
 
     public static void encode(OpenTrackerPacket msg, FriendlyByteBuf buf) {
         buf.writeItem(msg.itemstack);
+        buf.writeUtf(msg.hand);
     }
 
     public ItemStack getItemStack() {
