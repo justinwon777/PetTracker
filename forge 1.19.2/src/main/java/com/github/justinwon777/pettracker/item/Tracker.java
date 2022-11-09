@@ -1,8 +1,12 @@
 package com.github.justinwon777.pettracker.item;
 
+import com.github.justinwon777.pettracker.core.PacketHandler;
+import com.github.justinwon777.pettracker.networking.OpenTrackerPacket;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -12,10 +16,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.network.PacketDistributor;
+
+import java.util.*;
+
 
 public class Tracker extends Item {
 
-    private static final String TRACKING = "Tracking";
+    public static final String TRACKING = "Tracking";
+
 
     public Tracker(Properties p_i48487_1_) {
         super(p_i48487_1_);
@@ -26,29 +35,125 @@ public class Tracker extends Item {
                                                   InteractionHand pUsedHand) {
         if (pInteractionTarget.level.isClientSide) return InteractionResult.SUCCESS;
         CompoundTag tag = pStack.getOrCreateTag();
-        tag.putUUID(TRACKING, pInteractionTarget.getUUID());
+//        List<Integer> list = getIdList(tag);
+//        if (isDuplicate(list, pInteractionTarget.getId())) {
+//            pPlayer.sendSystemMessage(Component.literal("Entity already added"));
+//            return InteractionResult.SUCCESS;
+//        }
+//        list.add(pInteractionTarget.getId());
+//        tag.putIntArray(TRACKING, list);
+        ListTag listTag = getTrackingTag(tag);
+        if (isDuplicate(listTag, pInteractionTarget.getUUID())) {
+            pPlayer.sendSystemMessage(Component.literal("Entity already added"));
+            return InteractionResult.SUCCESS;
+        }
+//        CompoundTag entityTag = pInteractionTarget.getPersistentData();
+//        entityTag.putBoolean(EventHandler.LOAD_CHUNK, true);
+//        entityTag.putInt(EventHandler.CHUNK_TIMER, 20);
+        CompoundTag entityTag = new CompoundTag();
+        entityTag.putUUID("uuid", pInteractionTarget.getUUID());
+        entityTag.putString("name", pInteractionTarget.getDisplayName().getString());
+        entityTag.putInt("x", (int) pInteractionTarget.getX());
+        entityTag.putInt("y", (int) pInteractionTarget.getY());
+        entityTag.putInt("z", (int) pInteractionTarget.getZ());
+        entityTag.putBoolean("active", true);
+        listTag.add(entityTag);
         pPlayer.setItemInHand(pUsedHand, pStack);
         pPlayer.sendSystemMessage(Component.literal("Entity added"));
 
         return InteractionResult.SUCCESS;
     }
+
+    public void inventoryTick(ItemStack pStack, Level pLevel, Entity pEntity, int pItemSlot, boolean pIsSelected) {
+        if (!pLevel.isClientSide) {
+            CompoundTag tag = pStack.getTag();
+            if (tag != null && tag.contains(TRACKING)) {
+                ListTag listTag = tag.getList(TRACKING, 10);
+                for (int i = 0; i < listTag.size(); ++i) {
+                    CompoundTag entityTag = listTag.getCompound(i);
+                    Entity entity = getEntity((ServerLevel) pLevel, entityTag.getUUID("uuid"));
+                    if (entity != null) {
+                        entityTag.putInt("x", (int) entity.getX());
+                        entityTag.putInt("y", (int) entity.getY());
+                        entityTag.putInt("z", (int) entity.getZ());
+                        entityTag.putBoolean("active", true);
+                    } else {
+                        entityTag.putBoolean("active", false);
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand) {
         if (pLevel.isClientSide) return InteractionResultHolder.pass(pPlayer.getItemInHand(pUsedHand));
+        String hand;
+        if (pUsedHand == InteractionHand.MAIN_HAND) {
+            hand = "m";
+        } else {
+            hand = "o";
+        }
+        pPlayer.swing(pUsedHand);
         ItemStack itemstack = pPlayer.getItemInHand(pUsedHand);
         CompoundTag tag = itemstack.getTag();
         if (tag != null && tag.contains(TRACKING)) {
-            Entity entity = this.getEntity((ServerLevel) pLevel, itemstack);
-            pPlayer.sendSystemMessage(Component.literal(entity.getDisplayName().getString() + ": " + (int) entity.getX() + ", " + (int) entity.getY() +
-                    "," +
-                    " " + (int) entity.getZ() + " (" + (int) entity.distanceTo(pPlayer) + " blocks away)"));
+            ListTag listTag = tag.getList(TRACKING, 10);
+            if (!listTag.isEmpty()) {
+//            int[] idList = new int[listTag.size()];
+//            ArrayList<Integer> idList = new ArrayList<>();
+//            ArrayList<EntityLocation> entityList = new ArrayList<>();
+                for (int i = 0; i < listTag.size(); ++i) {
+                    CompoundTag entityTag = listTag.getCompound(i);
+                    Entity entity = getEntity((ServerLevel) pLevel, entityTag.getUUID("uuid"));
+                    System.out.println(entity);
+//                if (entity != null) {
+//                    entityList.add(new EntityLocation(entity.getDisplayName().getString(), (int) entity.getX(),
+//                            (int) entity.getY(), (int) entity.getZ(), entity.getUUID()));
+//                }
+                }
+//            OpenTrackerPacket packet = new OpenTrackerPacket(itemstack, entityList);
+                OpenTrackerPacket packet = new OpenTrackerPacket(itemstack, hand);
+//            OpenTrackerPacket packet = new OpenTrackerPacket(itemstack, idList.stream().mapToInt(i->i).toArray());
+                PacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) pPlayer),
+                        packet);
+//            System.out.println(packet.getEntityList());
+//            pPlayer.sendSystemMessage(Component.literal(entity.getDisplayName().getString() + ": " + (int) entity.getX() + ", " + (int) entity.getY() +
+//                    "," +
+//                    " " + (int) entity.getZ() + " (" + (int) entity.distanceTo(pPlayer) + " blocks away)"));
+            } else {
+                pPlayer.sendSystemMessage(Component.literal("No entities added"));
+            }
         } else {
-            pPlayer.sendSystemMessage(Component.literal("No entity added"));
+            pPlayer.sendSystemMessage(Component.literal("No entities added"));
         }
-        return InteractionResultHolder.pass(pPlayer.getItemInHand(pUsedHand));
+
+        return InteractionResultHolder.sidedSuccess(itemstack, pLevel.isClientSide());
     }
 
-    private Entity getEntity(ServerLevel world, ItemStack stack) {
-        return world.getEntity(stack.getTag().getUUID(TRACKING));
+    private Entity getEntity(ServerLevel world, UUID id) {
+        return world.getEntity(id);
+    }
+
+    private boolean isDuplicate(ListTag listTag, UUID uuid) {
+        for(int i = 0; i < listTag.size(); ++i) {
+            CompoundTag entityTag = listTag.getCompound(i);
+            UUID entityUUID = entityTag.getUUID("uuid");
+            if (entityUUID.equals(uuid)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private ListTag getTrackingTag(CompoundTag tag) {
+        ListTag listTag;
+        if (tag.contains(TRACKING)) {
+            listTag = tag.getList(TRACKING, 10);
+        } else {
+            listTag = new ListTag();
+            tag.put(TRACKING, listTag);
+        }
+        return listTag;
     }
 }
