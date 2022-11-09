@@ -31,19 +31,15 @@ public class TrackerScreen extends Screen {
 
     private static final ResourceLocation TRACKER_BACKGROUND = new ResourceLocation(PetTracker.MOD_ID,
             "textures/trackerscreen.png");
-    private static final ResourceLocation TELEPORT_BUTTON = new ResourceLocation(PetTracker.MOD_ID, "textures" +
-            "/teleport.png");
     protected int imageWidth;
     protected int imageHeight;
     protected int leftPos;
     protected int topPos;
     private TrackerList trackerList;
-//    private final int[] idList;
     private Button teleportButton;
     private Button removeButton;
-//    private List<EntityLocation> entityLocationList;
-    private ItemStack itemStack;
-    private String hand;
+    private final ItemStack itemStack;
+    private final String hand;
 
     public TrackerScreen(ItemStack tracker, String hand) {
         super(tracker.getItem().getDescription());
@@ -51,8 +47,6 @@ public class TrackerScreen extends Screen {
         this.imageWidth = 176;
         this.itemStack = tracker;
         this.hand = hand;
-//        this.idList = idList;
-//        this.entityLocationList = entityLocationList;
     }
 
     @Override
@@ -75,6 +69,7 @@ public class TrackerScreen extends Screen {
                     TrackerList.Entry entry = this.trackerList.getSelected();
                     PacketHandler.INSTANCE.sendToServer(new RemovePacket(entry.uuid, this.itemStack, this.hand));
                     this.trackerList.delete(entry);
+                    updateRemoveButtonStatus(false);
                 }));
         updateTeleportButtonStatus(false);
         updateRemoveButtonStatus(false);
@@ -84,7 +79,10 @@ public class TrackerScreen extends Screen {
     public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.renderBackground(pPoseStack);
         this.trackerList.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
-        this.teleportButton.renderButton(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        String header = "Pet Tracker";
+        this.font.draw(pPoseStack, header, (float) (this.width / 2 - this.font.width(header) / 2),
+                (float) this.topPos + 5,
+                4210752);
         super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
@@ -102,7 +100,19 @@ public class TrackerScreen extends Screen {
     protected void renderTooltip(PoseStack stack, int x, int y) {
         if (this.teleportButton.isHoveredOrFocused()) {
             List<Component> tooltips = new ArrayList<>();
-            tooltips.add(Component.literal("Teleports entity to you").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC));
+            if (this.teleportButton.isActive() || this.trackerList.getSelected() == null) {
+                tooltips.add(Component.literal("Teleports mob to you").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC));
+            } else {
+                tooltips.add(Component.literal("Mob is either dead or in an unloaded chunk. " +
+                        "Location is last known position.").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC));
+            }
+            this.renderTooltip(stack, tooltips, Optional.empty(), x, y);
+        }
+
+
+        if (this.removeButton.isHoveredOrFocused()) {
+            List<Component> tooltips = new ArrayList<>();
+            tooltips.add(Component.literal("Removes mob from the list.").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC));
 
             this.renderTooltip(stack, tooltips, Optional.empty(), x, y);
         }
@@ -139,14 +149,6 @@ public class TrackerScreen extends Screen {
             this.setRenderBackground(false);
             this.setRenderTopAndBottom(false);
             this.screen = screen;
-//            for (EntityLocation entityLocation : entityLocationList) {
-//                Entity entity = pMinecraft.level.getEntity(id);
-//                System.out.println(entity);
-//                if (entity != null) {
-//                this.addEntry(new Entry(entityLocation));
-//                this.addEntry(new Entry(pMinecraft.level.getEntity(id)));
-//                }
-//            }
             CompoundTag tag = itemstack.getTag();
             ListTag listTag = tag.getList(Tracker.TRACKING, 10);
             for(int i = 0; i < listTag.size(); ++i) {
@@ -176,11 +178,11 @@ public class TrackerScreen extends Screen {
         }
 
         protected int getScrollbarPosition() {
-            return super.getScrollbarPosition() - 44;
+            return super.getScrollbarPosition() - 45;
         }
 
         public int getRowWidth() {
-            return super.getRowWidth() - 60;
+            return super.getRowWidth() - 64;
         }
 
         protected void renderItem(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick, int pIndex, int pLeft, int pTop, int pWidth, int pHeight) {
@@ -208,7 +210,6 @@ public class TrackerScreen extends Screen {
 
         @OnlyIn(Dist.CLIENT)
         public class Entry extends ObjectSelectionList.Entry<TrackerScreen.TrackerList.Entry> {
-//            final EntityLocation entityLocation;
             public String name;
             public int x;
             public int y;
@@ -216,9 +217,6 @@ public class TrackerScreen extends Screen {
             public boolean active;
             public UUID uuid;
 
-//            public Entry(EntityLocation pEntityLocation) {
-//                this.entityLocation = pEntityLocation;
-//            }
             public Entry(String name, int x, int y, int z, boolean active, UUID uuid) {
                 this.name = name;
                 this.x = x;
@@ -228,19 +226,8 @@ public class TrackerScreen extends Screen {
                 this.uuid = uuid;
             }
             public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
-//                String name = this.entity.getDisplayName().getString();
-//                String location = "Location: " + (int) this.entity.getX() + ", " + (int) this.entity.getY() +
-//                    ", " + (int) this.entity.getZ();
-//                GetEntityPacket packet = new GetEntityPacket(this.entityLocation.getUUID());
-//                PacketHandler.INSTANCE.sendToServer(packet);
-//                String name = this.entityLocation.getName();
-                String location;
-                if (this.active) {
-                    location = "Location: " + this.x + ", " + this.y + ", " + this.z;
-                } else {
-                    location = "Location (last known): " + this.x + ", " + this.y + ", " + this.z;
-                }
-                TrackerScreen.this.font.draw(pPoseStack, name,
+                String location = "Location: " + this.x + ", " + this.y + ", " + this.z;
+                TrackerScreen.this.font.draw(pPoseStack, this.name,
                         (float)(TrackerScreen.TrackerList.this.width / 2 - TrackerScreen.this.font.width(name) / 2),
                         (float)(pTop + 1), 4210752);
                 TrackerScreen.this.font.draw(pPoseStack, location,

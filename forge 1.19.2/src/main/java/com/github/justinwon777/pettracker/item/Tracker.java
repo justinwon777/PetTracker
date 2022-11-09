@@ -12,6 +12,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -34,32 +35,34 @@ public class Tracker extends Item {
     public InteractionResult interactLivingEntity(ItemStack pStack, Player pPlayer, LivingEntity pInteractionTarget,
                                                   InteractionHand pUsedHand) {
         if (pInteractionTarget.level.isClientSide) return InteractionResult.SUCCESS;
-        CompoundTag tag = pStack.getOrCreateTag();
-//        List<Integer> list = getIdList(tag);
-//        if (isDuplicate(list, pInteractionTarget.getId())) {
-//            pPlayer.sendSystemMessage(Component.literal("Entity already added"));
-//            return InteractionResult.SUCCESS;
-//        }
-//        list.add(pInteractionTarget.getId());
-//        tag.putIntArray(TRACKING, list);
-        ListTag listTag = getTrackingTag(tag);
-        if (isDuplicate(listTag, pInteractionTarget.getUUID())) {
-            pPlayer.sendSystemMessage(Component.literal("Entity already added"));
-            return InteractionResult.SUCCESS;
+        if (pInteractionTarget instanceof TamableAnimal) {
+            if (((TamableAnimal) pInteractionTarget).isTame()) {
+                if (pInteractionTarget.isAlliedTo(pPlayer)) {
+                    CompoundTag tag = pStack.getOrCreateTag();
+                    ListTag listTag = getTrackingTag(tag);
+                    if (isDuplicate(listTag, pInteractionTarget.getUUID())) {
+                        pPlayer.sendSystemMessage(Component.literal("Entity already added"));
+                        return InteractionResult.SUCCESS;
+                    }
+                    CompoundTag entityTag = new CompoundTag();
+                    entityTag.putUUID("uuid", pInteractionTarget.getUUID());
+                    entityTag.putString("name", pInteractionTarget.getDisplayName().getString());
+                    entityTag.putInt("x", (int) pInteractionTarget.getX());
+                    entityTag.putInt("y", (int) pInteractionTarget.getY());
+                    entityTag.putInt("z", (int) pInteractionTarget.getZ());
+                    entityTag.putBoolean("active", true);
+                    listTag.add(entityTag);
+                    pPlayer.setItemInHand(pUsedHand, pStack);
+                    pPlayer.sendSystemMessage(Component.literal("Entity added"));
+                } else {
+                    pPlayer.sendSystemMessage(Component.literal("You don't own this mob"));
+                }
+            } else {
+                pPlayer.sendSystemMessage(Component.literal("This mob isn't tamed"));
+            }
+        } else {
+            pPlayer.sendSystemMessage(Component.literal("This mob isn't tamable"));
         }
-//        CompoundTag entityTag = pInteractionTarget.getPersistentData();
-//        entityTag.putBoolean(EventHandler.LOAD_CHUNK, true);
-//        entityTag.putInt(EventHandler.CHUNK_TIMER, 20);
-        CompoundTag entityTag = new CompoundTag();
-        entityTag.putUUID("uuid", pInteractionTarget.getUUID());
-        entityTag.putString("name", pInteractionTarget.getDisplayName().getString());
-        entityTag.putInt("x", (int) pInteractionTarget.getX());
-        entityTag.putInt("y", (int) pInteractionTarget.getY());
-        entityTag.putInt("z", (int) pInteractionTarget.getZ());
-        entityTag.putBoolean("active", true);
-        listTag.add(entityTag);
-        pPlayer.setItemInHand(pUsedHand, pStack);
-        pPlayer.sendSystemMessage(Component.literal("Entity added"));
 
         return InteractionResult.SUCCESS;
     }
@@ -77,6 +80,7 @@ public class Tracker extends Item {
                         entityTag.putInt("y", (int) entity.getY());
                         entityTag.putInt("z", (int) entity.getZ());
                         entityTag.putBoolean("active", true);
+                        entityTag.putString("name", entity.getDisplayName().getString());
                     } else {
                         entityTag.putBoolean("active", false);
                     }
@@ -100,24 +104,14 @@ public class Tracker extends Item {
         if (tag != null && tag.contains(TRACKING)) {
             ListTag listTag = tag.getList(TRACKING, 10);
             if (!listTag.isEmpty()) {
-//            int[] idList = new int[listTag.size()];
-//            ArrayList<Integer> idList = new ArrayList<>();
-//            ArrayList<EntityLocation> entityList = new ArrayList<>();
                 for (int i = 0; i < listTag.size(); ++i) {
                     CompoundTag entityTag = listTag.getCompound(i);
                     Entity entity = getEntity((ServerLevel) pLevel, entityTag.getUUID("uuid"));
                     System.out.println(entity);
-//                if (entity != null) {
-//                    entityList.add(new EntityLocation(entity.getDisplayName().getString(), (int) entity.getX(),
-//                            (int) entity.getY(), (int) entity.getZ(), entity.getUUID()));
-//                }
                 }
-//            OpenTrackerPacket packet = new OpenTrackerPacket(itemstack, entityList);
                 OpenTrackerPacket packet = new OpenTrackerPacket(itemstack, hand);
-//            OpenTrackerPacket packet = new OpenTrackerPacket(itemstack, idList.stream().mapToInt(i->i).toArray());
                 PacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) pPlayer),
                         packet);
-//            System.out.println(packet.getEntityList());
 //            pPlayer.sendSystemMessage(Component.literal(entity.getDisplayName().getString() + ": " + (int) entity.getX() + ", " + (int) entity.getY() +
 //                    "," +
 //                    " " + (int) entity.getZ() + " (" + (int) entity.distanceTo(pPlayer) + " blocks away)"));
