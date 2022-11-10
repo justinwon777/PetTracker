@@ -98,7 +98,7 @@ repositories {
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.19.2-43.1.25'
-    implementation fg.deobf("curse.maven:humancompanions-570319:4008103")
+//    implementation fg.deobf("curse.maven:humancompanions-570319:4008103")
 
     // Real mod deobf dependency examples - these get remapped to your current mappings
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api") // Adds JEI API as a compile dependency

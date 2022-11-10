@@ -61,7 +61,7 @@ public class Tracker extends Item {
                 pPlayer.sendSystemMessage(Component.literal("This mob isn't tamed"));
             }
         } else {
-            pPlayer.sendSystemMessage(Component.literal("This mob isn't tamable"));
+            pPlayer.sendSystemMessage(Component.literal("This mob isn't tameable"));
         }
 
         return InteractionResult.SUCCESS;
