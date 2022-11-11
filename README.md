@@ -10,7 +10,9 @@ Craft the tracker using one stick and one emerald:
 
 <img src="https://github.com/justinwon777/PetTracker/blob/main/recipe.png" alt="recipe" width="200">
 
-Right click on your pets to add them to the tracker. NOTE: Trackers are independent of each other. Each tracker keeps its own list of pets.
+Right click on your pets to add them to the tracker.
+- Trackers are independent of each other. Each tracker keeps its own list of pets.
+- Modded pets should work as long as they extend the vanilla Tameable entity class.
 
 Right click to open the tracker screen:
 
