@@ -8,10 +8,16 @@ This mod adds a tracker item that tracks the locations of your pets. Currently a
 
 Craft the tracker using one stick and one emerald:
 
-<img src="https://github.com/justinwon777/PetTracker/blob/main/recipe.png" alt="models" width="600">
+<img src="https://github.com/justinwon777/PetTracker/blob/main/recipe.png" alt="models" width="300">
 
 Right click on your pets to add them to the tracker. NOTE: Trackers are independent of each other. Each tracker keeps its own list of pets.
 
 Right click to open the tracker screen:
 
-<img src="https://github.com/justinwon777/PetTracker/blob/main/screen.png" alt="models" width="600">
+<img src="https://github.com/justinwon777/PetTracker/blob/main/screen.png" alt="models" width="400">
+
+## Tracker Options
+
+Teleport: Teleports mob to you. If the mob is dead or in an unloaded chunk, teleport button will not be available, and the location shown is the last known location.
+
+Remove: Removes mob from the list. You can only remove one at a time, so to remove multiple, remove one, then reopen tracker to remove more.
