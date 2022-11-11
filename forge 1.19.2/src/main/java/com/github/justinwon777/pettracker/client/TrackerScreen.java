@@ -60,16 +60,21 @@ public class TrackerScreen extends Screen {
                 20, Component.literal("Teleport"),
                 btn -> {
                     TrackerList.Entry entry = this.trackerList.getSelected();
-                    PacketHandler.INSTANCE.sendToServer(new TeleportPacket(entry.uuid));
+                    if (entry != null) {
+                        PacketHandler.INSTANCE.sendToServer(new TeleportPacket(entry.uuid));
+                    }
                 }));
         this.removeButton = addRenderableWidget(new Button(leftPos + 89, topPos + imageHeight - 10 - 15
                 , 83,
                 20, Component.literal("Remove"),
                 btn -> {
                     TrackerList.Entry entry = this.trackerList.getSelected();
-                    PacketHandler.INSTANCE.sendToServer(new RemovePacket(entry.uuid, this.itemStack, this.hand));
-                    this.trackerList.delete(entry);
-                    updateRemoveButtonStatus(false);
+                    if (entry != null) {
+                        PacketHandler.INSTANCE.sendToServer(new RemovePacket(entry.uuid, this.itemStack, this.hand));
+                        this.trackerList.delete(entry);
+                        updateRemoveButtonStatus(false);
+                        updateTeleportButtonStatus(false);
+                    }
                 }));
         updateTeleportButtonStatus(false);
         updateRemoveButtonStatus(false);
@@ -150,16 +155,19 @@ public class TrackerScreen extends Screen {
             this.setRenderTopAndBottom(false);
             this.screen = screen;
             CompoundTag tag = itemstack.getTag();
-            ListTag listTag = tag.getList(Tracker.TRACKING, 10);
-            for(int i = 0; i < listTag.size(); ++i) {
-                CompoundTag entityTag = listTag.getCompound(i);
-                String name = entityTag.getString("name");
-                int x = entityTag.getInt("x");
-                int y = entityTag.getInt("y");
-                int z = entityTag.getInt("z");
-                boolean active = entityTag.getBoolean("active");
-                UUID uuid = entityTag.getUUID("uuid");
-                this.addEntry(new Entry(name, x, y, z, active, uuid));
+            if (tag != null) {
+                ListTag listTag = tag.getList(Tracker.TRACKING, 10);
+                for (int i = 0; i < listTag.size(); ++i) {
+                    CompoundTag entityTag = listTag.getCompound(i);
+                    String name = entityTag.getString("name");
+                    int x = entityTag.getInt("x");
+                    int y = entityTag.getInt("y");
+                    int z = entityTag.getInt("z");
+                    boolean active = entityTag.getBoolean("active");
+                    UUID uuid = entityTag.getUUID("uuid");
+                    this.addEntry(new Entry(name, x, y, z, active, uuid));
+                }
+
             }
 
             if (this.getSelected() != null) {
