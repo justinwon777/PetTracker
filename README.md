@@ -23,3 +23,5 @@ Right click to open the tracker screen:
 **Teleport:** Teleports mob to you. If the mob is dead or in an unloaded chunk, teleport button will not be available, and the location shown is the last known location.
 
 **Remove:** Removes mob from the list. You can only remove one at a time, so to remove multiple, remove one, then reopen tracker to remove more.
+
+Support me on [Patreon.](https://www.patreon.com/jus10wontons "patreon")
