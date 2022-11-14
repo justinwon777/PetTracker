@@ -13,15 +13,17 @@ import net.minecraftforge.fml.common.Mod;
 public class EventHandler {
     @SubscribeEvent
     public static void trackerInteract(final PlayerInteractEvent.EntityInteract event) {
-        PlayerEntity player = (PlayerEntity) event.getEntity();
-        LivingEntity target = (LivingEntity) event.getTarget();
-        Hand hand = event.getHand();
-        ItemStack itemstack = player.getHeldItem(hand);
+        if (event.getTarget() instanceof LivingEntity) {
+            PlayerEntity player = (PlayerEntity) event.getEntity();
+            LivingEntity target = (LivingEntity) event.getTarget();
+            Hand hand = event.getHand();
+            ItemStack itemstack = player.getHeldItem(hand);
 
-        if (!target.world.isRemote()) {
-            if (itemstack.getItem() instanceof Tracker) {
-                itemstack.getItem().itemInteractionForEntity(itemstack, player, target, hand);
-                event.setCanceled(true);
+            if (!target.world.isRemote()) {
+                if (itemstack.getItem() instanceof Tracker) {
+                    itemstack.getItem().itemInteractionForEntity(itemstack, player, target, hand);
+                    event.setCanceled(true);
+                }
             }
         }
     }
