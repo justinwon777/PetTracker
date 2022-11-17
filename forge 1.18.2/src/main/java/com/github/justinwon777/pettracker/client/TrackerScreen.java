@@ -20,6 +20,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -41,13 +42,19 @@ public class TrackerScreen extends Screen {
     private Button removeButton;
     private final ItemStack itemStack;
     private final String hand;
+    private final double px;
+    private final double py;
+    private final double pz;
 
-    public TrackerScreen(ItemStack tracker, String hand) {
+    public TrackerScreen(ItemStack tracker, String hand, double x, double y, double z) {
         super(tracker.getItem().getDescription());
         this.imageHeight = 222;
         this.imageWidth = 176;
         this.itemStack = tracker;
         this.hand = hand;
+        this.px = x;
+        this.py = y;
+        this.pz = z;
     }
 
     @Override
@@ -151,7 +158,7 @@ public class TrackerScreen extends Screen {
 
         public TrackerList(Minecraft pMinecraft, ItemStack itemstack, TrackerScreen screen) {
             super(pMinecraft, TrackerScreen.this.width, TrackerScreen.this.height, 52,
-                    TrackerScreen.this.height - 65, 26);
+                    TrackerScreen.this.height - 65, 37);
             this.setRenderBackground(false);
             this.setRenderTopAndBottom(false);
             this.screen = screen;
@@ -256,12 +263,16 @@ public class TrackerScreen extends Screen {
             }
             public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
                 String location = "Location: " + this.x + ", " + this.y + ", " + this.z;
+                String distance = distanceTo(this.x, this.y, this.z) + " blocks away";
                 TrackerScreen.this.font.draw(pPoseStack, this.name,
                         (float)(TrackerList.this.width / 2 - TrackerScreen.this.font.width(name) / 2),
                         (float)(pTop + 1), 4210752);
                 TrackerScreen.this.font.draw(pPoseStack, location,
                         (float)(TrackerList.this.width / 2 - TrackerScreen.this.font.width(location) / 2),
                         (float)(pTop + 12), 4210752);
+                TrackerScreen.this.font.draw(pPoseStack, distance,
+                        (float)(TrackerScreen.TrackerList.this.width / 2 - TrackerScreen.this.font.width(distance) / 2),
+                        (float)(pTop + 23), 4210752);
             }
 
             public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
@@ -280,6 +291,13 @@ public class TrackerScreen extends Screen {
 
             public Component getNarration() {
                 return new TranslatableComponent("narrator.select", this.name);
+            }
+
+            public int distanceTo(int x, int y, int z) {
+                float f = (float)(TrackerScreen.this.px - x);
+                float f1 = (float)(TrackerScreen.this.py - y);
+                float f2 = (float)(TrackerScreen.this.pz - z);
+                return (int) Mth.sqrt(f * f + f1 * f1 + f2 * f2);
             }
         }
     }

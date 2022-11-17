@@ -11,7 +11,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
@@ -40,7 +39,7 @@ public class Tracker extends Item {
                     CompoundNBT tag = pStack.getOrCreateTag();
                     ListNBT listTag = getTrackingTag(tag);
                     if (isDuplicate(listTag, pInteractionTarget.getUniqueID())) {
-                        pPlayer.sendMessage(new StringTextComponent("Entity already added"), pPlayer.getUniqueID());
+                        pPlayer.sendMessage(new StringTextComponent("Mob already added"), pPlayer.getUniqueID());
                         return ActionResultType.SUCCESS;
                     }
                     CompoundNBT entityTag = new CompoundNBT();
@@ -52,7 +51,7 @@ public class Tracker extends Item {
                     entityTag.putBoolean("active", true);
                     listTag.add(entityTag);
                     pPlayer.setHeldItem(pUsedHand, pStack);
-                    pPlayer.sendMessage(new StringTextComponent("Entity added"), pPlayer.getUniqueID());
+                    pPlayer.sendMessage(new StringTextComponent("Mob added"), pPlayer.getUniqueID());
                 } else {
                     pPlayer.sendMessage(new StringTextComponent("You don't own this mob"), pPlayer.getUniqueID());
                 }
@@ -103,14 +102,15 @@ public class Tracker extends Item {
         if (tag != null && tag.contains(TRACKING)) {
             ListNBT listTag = tag.getList(TRACKING, 10);
             if (!listTag.isEmpty()) {
-                OpenTrackerPacket packet = new OpenTrackerPacket(itemstack, hand);
+                OpenTrackerPacket packet = new OpenTrackerPacket(itemstack, hand, pPlayer.getPosX(),
+                        pPlayer.getPosY(), pPlayer.getPosZ());
                 PacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) pPlayer),
                         packet);
             } else {
-                pPlayer.sendMessage(new StringTextComponent("No entities added"), pPlayer.getUniqueID());
+                pPlayer.sendMessage(new StringTextComponent("No mobs added"), pPlayer.getUniqueID());
             }
         } else {
-            pPlayer.sendMessage(new StringTextComponent("No entities added"), pPlayer.getUniqueID());
+            pPlayer.sendMessage(new StringTextComponent("No mobs added"), pPlayer.getUniqueID());
         }
 
         return ActionResult.func_233538_a_(itemstack, pLevel.isRemote);

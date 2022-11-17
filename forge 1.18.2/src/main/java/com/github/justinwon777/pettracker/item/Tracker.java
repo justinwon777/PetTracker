@@ -39,7 +39,7 @@ public class Tracker extends Item {
                     CompoundTag tag = pStack.getOrCreateTag();
                     ListTag listTag = getTrackingTag(tag);
                     if (isDuplicate(listTag, pInteractionTarget.getUUID())) {
-                        pPlayer.sendMessage(new TextComponent("Entity already added"), pPlayer.getUUID());
+                        pPlayer.sendMessage(new TextComponent("Mob already added"), pPlayer.getUUID());
                         return InteractionResult.SUCCESS;
                     }
                     CompoundTag entityTag = new CompoundTag();
@@ -51,7 +51,7 @@ public class Tracker extends Item {
                     entityTag.putBoolean("active", true);
                     listTag.add(entityTag);
                     pPlayer.setItemInHand(pUsedHand, pStack);
-                    pPlayer.sendMessage(new TextComponent("Entity added"), pPlayer.getUUID());
+                    pPlayer.sendMessage(new TextComponent("Mob added"), pPlayer.getUUID());
                 } else {
                     pPlayer.sendMessage(new TextComponent("You don't own this mob"), pPlayer.getUUID());
                 }
@@ -107,17 +107,18 @@ public class Tracker extends Item {
 //                    Entity entity = getEntity((ServerLevel) pLevel, entityTag.getUUID("uuid"));
 //                    System.out.println(entity);
 //                }
-                OpenTrackerPacket packet = new OpenTrackerPacket(itemstack, hand);
+                OpenTrackerPacket packet = new OpenTrackerPacket(itemstack, hand, pPlayer.getX(), pPlayer.getY(),
+                        pPlayer.getZ());
                 PacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) pPlayer),
                         packet);
 //            pPlayer.sendSystemMessage(Component.literal(entity.getDisplayName().getString() + ": " + (int) entity.getX() + ", " + (int) entity.getY() +
 //                    "," +
 //                    " " + (int) entity.getZ() + " (" + (int) entity.distanceTo(pPlayer) + " blocks away)"));
             } else {
-                pPlayer.sendMessage(new TextComponent("No entities added"), pPlayer.getUUID());
+                pPlayer.sendMessage(new TextComponent("No mobs added"), pPlayer.getUUID());
             }
         } else {
-            pPlayer.sendMessage(new TextComponent("No entities added"), pPlayer.getUUID());
+            pPlayer.sendMessage(new TextComponent("No mobs added"), pPlayer.getUUID());
         }
 
         return InteractionResultHolder.sidedSuccess(itemstack, pLevel.isClientSide());

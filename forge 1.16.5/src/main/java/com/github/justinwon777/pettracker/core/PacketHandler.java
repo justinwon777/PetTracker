@@ -34,7 +34,7 @@ public class PacketHandler {
     public static void openTracker(OpenTrackerPacket packet) {
         PlayerEntity player = Minecraft.getInstance().player;
         if (player != null) {
-            Minecraft.getInstance().displayGuiScreen(new TrackerScreen(packet.getItemStack(), packet.getHand()));
+            Minecraft.getInstance().displayGuiScreen(new TrackerScreen(packet.getItemStack(), packet.getHand(), packet.getX(), packet.getY(), packet.getZ()));
         }
     }
 }
