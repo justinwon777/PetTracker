@@ -12,6 +12,7 @@ Craft the tracker using one stick and one emerald:
 
 Right click on your pets to add them to the tracker.
 - Trackers are independent of each other. Each tracker keeps its own list of pets.
+- Pets with nametags will show up with their custom names.
 - Modded pets should work as long as they extend the vanilla Tameable entity class.
 
 Right click to open the tracker screen:
