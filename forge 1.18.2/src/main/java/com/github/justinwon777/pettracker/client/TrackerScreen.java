@@ -62,7 +62,7 @@ public class TrackerScreen extends Screen {
         super.init();
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
-        this.trackerList = addWidget(new TrackerList(this.minecraft, this.itemStack, this));
+        this.trackerList = addWidget(new TrackerList(this.minecraft, this.itemStack, this, this.topPos));
         this.teleportButton = addRenderableWidget(new Button(leftPos + 5, topPos + imageHeight - 10 - 15
                 , 83,
                 20, new TextComponent("Teleport"),
@@ -156,9 +156,9 @@ public class TrackerScreen extends Screen {
     class TrackerList extends ObjectSelectionList<TrackerList.Entry> {
         private final TrackerScreen screen;
 
-        public TrackerList(Minecraft pMinecraft, ItemStack itemstack, TrackerScreen screen) {
-            super(pMinecraft, TrackerScreen.this.width, TrackerScreen.this.height, 52,
-                    TrackerScreen.this.height - 65, 37);
+        public TrackerList(Minecraft pMinecraft, ItemStack itemstack, TrackerScreen screen, int top) {
+            super(pMinecraft, TrackerScreen.this.width, TrackerScreen.this.height, top + 30,
+                    top + 180, 37);
             this.setRenderBackground(false);
             this.setRenderTopAndBottom(false);
             this.screen = screen;
